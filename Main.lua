@@ -13,18 +13,17 @@ function CopyWhoListMixin:OnEvent(event, ...)
         end
     elseif (event == "WHO_LIST_UPDATE") then
         self:OnWhoListUpdate();
+    elseif (event == "MAIL_SHOW") then
+        self:OnMailShow();
+    elseif (event == "MAIL_CLOSED") then
+        self:OnMailClosed();
     end
-end
-
-function CopyWhoListMixin:OnWhoListUpdate(...)
-    local num = C_FriendList.GetNumWhoResults();
-
-    WhoFrameCopyButton:SetEnabled(num and num > 0);
 end
 
 function CopyWhoListMixin:OnAddOnLoaded(...)
     self:UnregisterEvent("ADDON_LOADED");
     self:RegisterEvent("WHO_LIST_UPDATE");
+    self:RegisterEvent("MAIL_SHOW");
 
     local btn = CreateFrame("Button", "WhoFrameCopyButton", WhoFrame, "UIPanelButtonTemplate");
     btn:SetFrameStrata("HIGH");
@@ -36,6 +35,12 @@ function CopyWhoListMixin:OnAddOnLoaded(...)
     self:OnWhoListUpdate();
 
     btn:Show();
+end
+
+function CopyWhoListMixin:OnWhoListUpdate(...)
+    local num = C_FriendList.GetNumWhoResults();
+
+    WhoFrameCopyButton:SetEnabled(num and num > 0);
 end
 
 function CopyWhoListMixin:OnCopyListClick(...)
@@ -116,4 +121,18 @@ function CopyWhoListMixin:CopyWhoFrameShow(text)
 
         CopyWhoFrame:Show();
     end
+end
+
+function CopyWhoListMixin:OnMailShow()
+    self:RegisterEvent("MAIL_CLOSED");
+
+    SetCVar("blockTrades", 1);
+    print("|cffff0000CopyWhoList blocked your trades!|r");
+end
+
+function CopyWhoListMixin:OnMailClosed()
+    self:UnregisterEvent("MAIL_CLOSED");
+
+    SetCVar("blockTrades", 0);
+    print("|cff00ff00CopyWhoList unlocked your trades!|r");
 end
