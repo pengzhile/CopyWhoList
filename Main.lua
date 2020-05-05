@@ -31,10 +31,16 @@ function CopyWhoListMixin:OnAddOnLoaded(...)
     btn:SetText("Copy List");
     btn:SetPoint("CENTER", 110, 172);
     btn:SetScript("OnClick", self.OnCopyListClick)
-
     self:OnWhoListUpdate();
-
     btn:Show();
+
+    local btnBattle = CreateFrame("Button", "BattlegroundFrameCopyButton", WorldStateScoreFrame, "UIPanelButtonTemplate");
+    btnBattle:SetFrameStrata("HIGH");
+    btnBattle:SetSize(100, 22);
+    btnBattle:SetText("Copy Names");
+    btnBattle:SetPoint("CENTER", "WorldStateScoreFrameCloseButton", "LEFT", -46, 1);
+    btnBattle:SetScript("OnClick", self.OnCopyBattleNamesClick)
+    btnBattle:Show();
 end
 
 function CopyWhoListMixin:OnWhoListUpdate(...)
@@ -52,13 +58,34 @@ function CopyWhoListMixin:OnCopyListClick(...)
     local info;
     local txt = "";
     local realm = GetRealmName();
+    local playerName = GetUnitName("player");
 
     for i = 1, num do
         info = C_FriendList.GetWhoInfo(i);
-        txt = txt .. info.fullName .. "/" .. realm;
+        if (info.fullName ~= playerName) then
+            txt = txt .. info.fullName .. "/" .. realm .. (i < num and "\n" or "");
+        end
+    end
 
-        if (i < num) then
-            txt = txt .. "\n";
+    CopyWhoListMixin:CopyWhoFrameShow(txt);
+end
+
+function CopyWhoListMixin:OnCopyBattleNamesClick(...)
+    local num = GetNumBattlefieldScores();
+    if (num == nil or num <= 0) then
+        return ;
+    end
+
+    local fullName, name, server;
+    local txt = "";
+    local realm = GetRealmName();
+    local playerName = UnitName("player");
+
+    for i = 1, num do
+        fullName = GetBattlefieldScore(i);
+        if (fullName ~= playerName) then
+            name, server = strsplit("-", fullName);
+            txt = txt .. name .. "/" .. (server == nil and realm or server) .. (i < num and "\n" or "");
         end
     end
 
@@ -68,6 +95,7 @@ end
 function CopyWhoListMixin:CopyWhoFrameShow(text)
     if not CopyWhoFrame then
         local frame = CreateFrame("Frame", "CopyWhoFrame", UIParent, "UIPanelDialogTemplate");
+        frame:SetFrameStrata("HIGH");
         frame:SetPoint("CENTER");
         frame:SetSize(500, 400);
 
@@ -80,8 +108,12 @@ function CopyWhoListMixin:CopyWhoFrameShow(text)
         -- Movable
         frame:SetMovable(true);
         frame:SetClampedToScreen(true);
-        frame:SetScript("OnMouseDown", frame.StartMoving);
-        frame:SetScript("OnMouseUp", frame.StopMovingOrSizing);
+        frame:SetScript("OnMouseDown", function()
+            frame:StartMoving();
+        end);
+        frame:SetScript("OnMouseUp", function()
+            frame:StopMovingOrSizing();
+        end);
 
         -- ScrollFrame
         local scroll = CreateFrame("ScrollFrame", "CopyWhoFrameScrollFrame", CopyWhoFrame, "UIPanelScrollFrameTemplate");
@@ -111,7 +143,9 @@ function CopyWhoListMixin:CopyWhoFrameShow(text)
         resizer:SetScript("OnMouseDown", function()
             frame:StartSizing("BOTTOMRIGHT");
         end);
-        resizer:SetScript("OnMouseUp", frame.StopMovingOrSizing);
+        resizer:SetScript("OnMouseUp", function()
+            frame:StopMovingOrSizing();
+        end);
     end
 
     if text then
@@ -119,11 +153,13 @@ function CopyWhoListMixin:CopyWhoFrameShow(text)
         CopyWhoFrameEditBox:HighlightText();
         CopyWhoFrameEditBox:SetFocus();
 
+        PlaySound(SOUNDKIT.GS_TITLE_OPTION_OK);
         CopyWhoFrame:Show();
     end
 end
 
 function CopyWhoListMixin:OnMailShow()
+    self:UnregisterEvent("MAIL_SHOW");
     self:RegisterEvent("MAIL_CLOSED");
 
     SetCVar("blockTrades", 1);
@@ -132,6 +168,7 @@ end
 
 function CopyWhoListMixin:OnMailClosed()
     self:UnregisterEvent("MAIL_CLOSED");
+    self:RegisterEvent("MAIL_SHOW");
 
     SetCVar("blockTrades", 0);
     print("|cff00ff00CopyWhoList unlocked your trades!|r");
