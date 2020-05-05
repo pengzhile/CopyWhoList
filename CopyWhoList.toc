@@ -1,0 +1,8 @@
+﻿## Interface: 11304
+## Title: |cFF0dea38Copy|r Who List
+## Author: NeoPeng
+## Notes: Copy Who List
+## Version: 1.0.0
+
+Main.lua
+Main.xml
