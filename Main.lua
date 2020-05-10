@@ -23,7 +23,9 @@ end
 function CopyWhoListMixin:OnAddOnLoaded(...)
     self:UnregisterEvent("ADDON_LOADED");
     self:RegisterEvent("WHO_LIST_UPDATE");
-    self:RegisterEvent("MAIL_SHOW");
+    if GetCVar("blockTrades") ~= 1 then
+        self:RegisterEvent("MAIL_SHOW");
+    end
 
     local btn = CreateFrame("Button", "WhoFrameCopyButton", WhoFrame, "UIPanelButtonTemplate");
     btn:SetFrameStrata("HIGH");
