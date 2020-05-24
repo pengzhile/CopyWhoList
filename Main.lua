@@ -113,29 +113,58 @@ function CopyWhoListMixin:OnAddOnLoaded(...)
 
     local btn = CreateFrame("Button", "WhoFrameCopyButton", WhoFrame, "UIPanelButtonTemplate");
     btn:SetFrameStrata("HIGH");
-    btn:SetSize(100, 26);
-    btn:SetText("Copy List");
-    btn:SetPoint("CENTER", 110, 172);
+    btn:SetSize(120, 26);
+    btn:SetText("复制当前名单");
+    btn:SetPoint("CENTER", -45, 172);
     btn:SetScript("OnClick", self.OnCopyListClick)
     self:OnWhoListUpdate();
+    btn:Show();
+	
+    local btn = CreateFrame("Button", "WhoFrameCopyButton", WhoFrame, "UIPanelButtonTemplate");
+    btn:SetFrameStrata("HIGH");
+    btn:SetSize(145, 26);
+    btn:SetText("按预设关键词查询");
+    btn:SetPoint("CENTER", 90, 172);
+    btn:SetScript("OnClick", self.OnShowWhoClick)
     btn:Show();
 
     local btnBattle = CreateFrame("Button", "BattlegroundFrameCopyButton", WorldStateScoreFrame, "UIPanelButtonTemplate");
     btnBattle:SetFrameStrata("HIGH");
-    btnBattle:SetSize(100, 22);
-    btnBattle:SetText("Copy Names");
-    btnBattle:SetPoint("CENTER", "WorldStateScoreFrameCloseButton", "LEFT", -46, 1);
+    btnBattle:SetSize(120, 22);
+    btnBattle:SetText("复制战场名单");
+    btnBattle:SetPoint("CENTER", "WorldStateScoreFrameCloseButton", "LEFT", -56, 1);
     btnBattle:SetScript("OnClick", self.OnCopyBattleNamesClick)
     btnBattle:Show();
 end
 
 function CopyWhoListMixin:OnWhoListUpdate(...)
-    --local num = C_FriendList.GetNumWhoResults();
-   local num = 1
+    local num = C_FriendList.GetNumWhoResults();
+
     WhoFrameCopyButton:SetEnabled(num and num > 0);
 end
 
 function CopyWhoListMixin:OnCopyListClick(...)
+    local num = C_FriendList.GetNumWhoResults();
+    if (num == nil or num <= 0) then
+        return ;
+    end
+
+    local info;
+    local txt = "";
+    local realm = GetRealmName();
+    local playerName = GetUnitName("player");
+
+    for i = 1, num do
+        info = C_FriendList.GetWhoInfo(i);
+        if (info.fullName ~= playerName) then
+            txt = txt .. info.fullName .. "/" .. realm .. (i < num and "\n" or "");
+        end
+    end
+
+    CopyWhoListMixin:CopyWhoFrameShow(txt);
+end
+
+function CopyWhoListMixin:OnShowWhoClick(...)
 	--如果当前关键词不存在，则停止查询
 	if (Who[WhoNo] == nil) then
 		CopyWhoListMixin:CopyWhoFrameShow(Whotxt);
