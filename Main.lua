@@ -316,7 +316,7 @@ function CopyWhoListMixin:OnMailShow()
     self:RegisterEvent("MAIL_CLOSED");
 
     SetCVar("blockTrades", 1);
-    print("|cffff0000CopyWhoList blocked your trades!|r");
+    print("|cffff0000打开邮箱：禁用交易功能！|r");
 end
 
 function CopyWhoListMixin:OnMailClosed()
@@ -324,5 +324,5 @@ function CopyWhoListMixin:OnMailClosed()
     self:RegisterEvent("MAIL_SHOW");
 
     SetCVar("blockTrades", 0);
-    print("|cff00ff00CopyWhoList unlocked your trades!|r");
+    print("|cff00ff00关闭邮箱：开启交易功能！|r");
 end
